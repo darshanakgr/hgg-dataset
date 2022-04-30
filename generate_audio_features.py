@@ -29,6 +29,9 @@ for audio_file in audio_files:
     n_frames = np.round(duration * fps)     # Number of frames
 
     mfccs = librosa.feature.mfcc(y=signal, sr=sampling_rate, n_mfcc=13, hop_length=window_size, n_fft=window_size)
+    
+    mfccs_d1 = librosa.feature.delta(mfccs, order=1)
+    mfccs_d2 = librosa.feature.delta(mfccs, order=2)
 
     for i in tqdm.trange(len(captions)):
         t, d = captions.iloc[i, [0, 1]]
@@ -42,9 +45,15 @@ for audio_file in audio_files:
         indices = np.arange(start_ft - n_windows, end_ft + n_windows)
         windows = np.lib.stride_tricks.sliding_window_view(indices, window_shape=61)
         features = mfccs[:, windows]
+        features_d1 = mfccs_d1[:, windows]
+        features_d2 = mfccs_d2[:, windows]
         
         features = features.transpose(1, 2, 0)
+        features_d1 = features_d1.transpose(1, 2, 0)
+        features_d2 = features_d2.transpose(1, 2, 0)
         
         np.save(os.path.join(output_folder, f"audio_feat_{t}_{d}.npy"), features)
+        np.save(os.path.join(output_folder, f"audio_feat_d1_{t}_{d}.npy"), features_d1)
+        np.save(os.path.join(output_folder, f"audio_feat_d2_{t}_{d}.npy"), features_d2)
     
 
